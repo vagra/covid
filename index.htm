@@ -119,7 +119,7 @@
                 d.cases = +d["Cases"];
                 d.dailyCases = +d["Daily Cases"];
                 d.death = +d["Death"];
-                d.dailyDeath = +d["Daily Deaths"];
+                d.dailyDeaths = +d["Daily Deaths"];
                 return d;
             })
 
@@ -151,7 +151,7 @@
                 .range([height - margin.bottom, margin.top])
 
             var yr = d3.scaleLinear()
-                .domain([0, d3.max(csv, d => d.dailyDeath) * 2]).nice()
+                .domain([0, d3.max(csv, d => d.dailyDeaths) * 2]).nice()
                 .range([height - margin.bottom, margin.top])
 
             var xAxis = g => g
@@ -178,7 +178,7 @@
                     .attr("x", -10)
                     .attr("text-anchor", "end")
                     .style("font-size", "12px")
-                    .text("Daily Death"))
+                    .text("Daily Deaths"))
 
             svg.append("g")
                 .attr("class", "x-axis")
@@ -230,9 +230,9 @@
                 .attr("transform", d => `translate(4,0)`)
                 .attr("fill", "FireBrick")
                 .attr("x", d => x0(d.date))
-                .attr("y", d => yr(d.dailyDeath))
+                .attr("y", d => yr(d.dailyDeaths))
                 .attr("width", x1.bandwidth())
-                .attr("height", d => yr(0) - yr(d.dailyDeath))
+                .attr("height", d => yr(0) - yr(d.dailyDeaths))
 
 
         }
