@@ -38,6 +38,11 @@ func main() {
 	}
 	exePath := filepath.Dir(exe)
 
+	_, err = os.Stat(filepath.Join(exePath, "data"))
+	if os.IsNotExist(err) {
+		os.Mkdir(filepath.Join(exePath, "data"), 0777)
+	}
+
 	// set input file.
 	infile, err := os.Open(filepath.Join(exePath, "country.csv"))
 	if err != nil {
