@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    
+    <title>COVID-19 Coronavirus Pandemic</title>
+
+    <link rel="stylesheet" type="text/css" href="//stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
+
+    <script src="//code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="//stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="//d3js.org/d3.v5.min.js"></script>
+
+    <style type="text/css">
+
+        #datagrid,
+        #charts {
+            width: 960px;
+            margin: 20px auto;
+        }
+
+        h1,h2,h3,h4,h5,h6 {
+            text-align: center;
+        }
+
+        svg {
+            margin: 0 auto;
+        }
+        
+        .yl-axis line,
+        .yl-axis path {
+            stroke: SteelBlue;
+        }
+        
+        .yl-axis text {
+            color: SteelBlue;
+        }
+        
+        .yr-axis line,
+        .yr-axis path {
+            stroke: FireBrick;
+        }
+        
+        .yr-axis text {
+            color: FireBrick;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>COVID-19 Coronavirus Pandemic<h1>
+    <h6>The charts below are updated after the close of the day in GMT+0.</h2>
+
+    <div id="datagrid"></div>
+    <div id="charts"></div>
+
+    <script>
+        $(document).ready(function() {
+
+            fetch("table.htm")
+                .then(response => {
+                    return response.text()
+                })
+                .then(data => {
+                    document.querySelector("#datagrid").innerHTML = data;
+                    $('#main_table_countries_yesterday').DataTable({
+                        "order": [
+                            [4, 'desc']
+                        ],
+                        paging: true,
+                        searching: false,
+                        info: false,
+                        lengthChange: false,
+                        pageLength: 20,
+                        scrollX: true
+                        
+                    });
+                });
+        });
+    </script>
+
+    <script>
+        d3.csv(`country.csv`)
+            .then(c => gen(c))
+        
+        function gen(list) {
+
+            list.forEach(function(c){
+                c.country = c['country'];
+                console.log(c.country);
+
+                d3.select(`#charts`)
+                .append("svg")
+                .attr("id", `s-${c.country}`)
+                .attr("width", 960)
+                .attr("height", 500);
+
+                d3.csv(`data/${c.country}.csv`)
+                    .then(d => chart(d, c.country));
+            })
+
+        }
+
+        function chart(csv, country) {
+
+            var parseTime = d3.timeParse("%b %d");
+            var formatTime = d3.timeFormat("%m-%d");
+
+            var keys = ["Daily Cases", "Daily Deaths"]
+
+            csv.forEach(function(d) {
+                d.date = formatTime(parseTime(d["Date"]));
+                d.cases = +d["Cases"];
+                d.dailyCases = +d["Daily Cases"];
+                d.death = +d["Death"];
+                d.dailyDeath = +d["Daily Deaths"];
+                return d;
+            })
+
+            var svg = d3.select(`#s-${country}`);
+
+            var margin = {
+                    top: 20,
+                    bottom: 20,
+                    left: 50,
+                    right: 20
+                },
+                width = +svg.attr("width") - margin.left - margin.right,
+                height = +svg.attr("height") - margin.top - margin.bottom;
+
+            var x0 = d3.scaleBand()
+                .domain(csv.map(d => d.date))
+                .rangeRound([margin.left, width - margin.right])
+                .padding(0)
+                .paddingInner(0)
+
+            var x1 = d3.scaleBand()
+                .domain(keys)
+                .rangeRound([0, x0.bandwidth()])
+                .padding(0)
+                .paddingInner(0)
+
+            var yl = d3.scaleLinear()
+                .domain([0, d3.max(csv, d => d.dailyCases)]).nice()
+                .range([height - margin.bottom, margin.top])
+
+            var yr = d3.scaleLinear()
+                .domain([0, d3.max(csv, d => d.dailyDeath) * 2]).nice()
+                .range([height - margin.bottom, margin.top])
+
+            var xAxis = g => g
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x0)
+                    .tickValues(x0.domain().filter(function(d, i) {
+                        return !(i % 5)
+                    })))
+                .call(g => g.select(".domain").remove())
+
+            var ylAxis = g => g
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(yl))
+                .call(g => g.select(".tick:last-of-type text").clone()
+                    .attr("x", 10)
+                    .attr("text-anchor", "start")
+                    .style("font-size", "12px")
+                    .text("Daily Cases"))
+
+            var yrAxis = g => g
+                .attr("transform", `translate(${width - margin.right},0)`)
+                .call(d3.axisRight(yr))
+                .call(g => g.select(".tick:last-of-type text").clone()
+                    .attr("x", -10)
+                    .attr("text-anchor", "end")
+                    .style("font-size", "12px")
+                    .text("Daily Death"))
+
+            svg.append("g")
+                .attr("class", "x-axis")
+                .call(xAxis)
+                .selectAll("text")
+                .style("text-anchor", "start")
+                .attr("dx", "1em")
+                .attr("dy", "-1em")
+                .attr("transform", "rotate(90)")
+                .style("font-size", "8px");
+
+            svg.append("g")
+                .attr("class", "yl-axis")
+                .call(ylAxis)
+
+            svg.append("g")
+                .attr("class", "yr-axis")
+                .call(yrAxis)
+
+            svg.append("text")
+                .attr("x", 240)
+                .attr("y", 60)
+                .attr("text-anchor", "start")
+                .style("font-size", "32px")
+                .style("color", "SteelBlue")
+                .text(country.toUpperCase())
+
+
+
+            svg.append("g")
+                .attr("class", "l-bar")
+                .selectAll(".l-bar")
+                .data(csv, d => d.date)
+                .enter()
+                .append("rect")
+                .attr("transform", d => `translate(0,0)`)
+                .attr("fill", "SteelBlue")
+                .attr("x", d => x0(d.date))
+                .attr("y", d => yl(d.dailyCases))
+                .attr("width", x1.bandwidth())
+                .attr("height", d => yl(0) - yl(d.dailyCases))
+
+            svg.append("g")
+                .attr("class", "r-bar")
+                .selectAll(".r-bar")
+                .data(csv, d => d.date)
+                .enter()
+                .append("rect")
+                .attr("transform", d => `translate(4,0)`)
+                .attr("fill", "FireBrick")
+                .attr("x", d => x0(d.date))
+                .attr("y", d => yr(d.dailyDeath))
+                .attr("width", x1.bandwidth())
+                .attr("height", d => yr(0) - yr(d.dailyDeath))
+
+
+        }
+    </script>
+</body>
+
+</html>

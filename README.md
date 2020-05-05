@@ -1,2 +1,32 @@
 # covid
-using colly obtain covid data from worldometers.info per day, and show a 'daily-cases/daily-deaths' chart using d3.js
+using [colly](https://github.com/gocolly/colly) obtain covid data from worldometers.info per day, and show a 'daily-cases/daily-deaths' chart using [d3](https://github.com/d3/d3)
+
+
+## step-1: update files to server
+
+
+## step-2: build and first run
+```
+go build
+```
+this generate a executable file `covid`.
+then run:
+```
+./covid
+```
+this obtain all data from worldometers.info and save to `data` folder.
+
+## step-4: add sceduled task
+let `covid` auto obtain data once per day.
+
+window: using scheduled tasks
+linux: using crontab
+```
+crontab -e
+15 8-10 * * *  /your_server/covid/covid
+```
+
+## step-5: visit site
+```
+https://your_server.com/covid
+```
