@@ -109,6 +109,11 @@ func main() {
 
 		writer := bufio.NewWriter(outfile)
 
+		old := `<table id="main_table_countries_yesterday" class="table table-bordered table-hover main_table_countries" style="width:100%;margin-top: 0px !important;display:none;">`
+
+		new := `<table id="main_table_countries_yesterday" class="table table-bordered table-hover main_table_countries dataTable no-footer" style="width:100%;margin-top: 0px !important;">`
+
+		content = strings.Replace(content, old, new, -1)
 		writer.WriteString(content)
 		writer.Flush()
 
