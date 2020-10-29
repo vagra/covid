@@ -4,31 +4,36 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     
-    <title>COVID-19 Coronavirus Pandemic</title>
+    <title>新冠疫情全球趋势图</title>
 
-    <link rel="stylesheet" type="text/css" href="//stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/datatables.min.css" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/datatables.min.js"></script>
 
-    <script src="//code.jquery.com/jquery-3.4.1.slim.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-    <script src="//stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-    <script src="//d3js.org/d3.v5.min.js"></script>
+    <script type="text/javascript" src="js/d3.min.js"></script>
 
     <style type="text/css">
 
-        #datagrid,
-        #charts {
-            width: 960px;
+        #datagrid{
+            width: 96vw;
             margin: 20px auto;
+        }
+
+        #charts {
+            width: 96vw;
+            margin: 40px auto;
+            display: table;
         }
 
         h1,h2,h3,h4,h5,h6 {
             text-align: center;
         }
 
-        svg {
+        #charts > svg {
             margin: 0 auto;
+            display: table-cell;
         }
         
         .yl-axis line,
@@ -54,8 +59,9 @@
 
 <body>
 
-    <h1>COVID-19 Coronavirus Pandemic<h1>
-    <h6>The charts below are updated after the close of the day in GMT+0.</h2>
+    <h1>新冠疫情全球趋势图<h1>
+    <h6>数据来自 <a href="https://worldometers.info" target="_blank">WorldOmeter</a> 昨日统计</h6>
+    <h6>每日数据截至时间：格林威治时间0点(GMT+0) / 北京时间8点(GMT+8)</h6>
 
     <div id="datagrid"></div>
     <div id="charts"></div>
@@ -77,7 +83,7 @@
                         searching: false,
                         info: false,
                         lengthChange: false,
-                        pageLength: 20,
+                        pageLength: 50,
                         scrollX: true
                         
                     });
@@ -93,21 +99,22 @@
 
             list.forEach(function(c){
                 c.country = c['country'];
-                console.log(c.country);
+                c.locale = c['locale'];
+                console.log(c.country, c.locale);
 
                 d3.select(`#charts`)
                 .append("svg")
                 .attr("id", `s-${c.country}`)
-                .attr("width", 960)
-                .attr("height", 500);
+                .attr("width", 720)
+                .attr("height", 400);
 
                 d3.csv(`data/${c.country}.csv`)
-                    .then(d => chart(d, c.country));
+                    .then(d => chart(d, c.country, c.locale));
             })
 
         }
 
-        function chart(csv, country) {
+        function chart(csv, country, locale) {
 
             var parseTime = d3.timeParse("%b %d");
             var formatTime = d3.timeFormat("%m-%d");
@@ -129,7 +136,7 @@
                     top: 20,
                     bottom: 20,
                     left: 50,
-                    right: 20
+                    right: 10
                 },
                 width = +svg.attr("width") - margin.left - margin.right,
                 height = +svg.attr("height") - margin.top - margin.bottom;
@@ -166,19 +173,23 @@
                 .attr("transform", `translate(${margin.left},0)`)
                 .call(d3.axisLeft(yl))
                 .call(g => g.select(".tick:last-of-type text").clone()
-                    .attr("x", 10)
                     .attr("text-anchor", "start")
+                    .attr("transform", "rotate(90)")
+                    .attr("y", -10)
+                    .attr("x", 10)
                     .style("font-size", "12px")
-                    .text("Daily Cases"))
+                    .text("诊确增新日每"))
 
             var yrAxis = g => g
                 .attr("transform", `translate(${width - margin.right},0)`)
                 .call(d3.axisRight(yr))
                 .call(g => g.select(".tick:last-of-type text").clone()
-                    .attr("x", -10)
                     .attr("text-anchor", "end")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", -10)
+                    .attr("x", -10)
                     .style("font-size", "12px")
-                    .text("Daily Deaths"))
+                    .text("每日新增死亡"))
 
             svg.append("g")
                 .attr("class", "x-axis")
@@ -199,14 +210,20 @@
                 .call(yrAxis)
 
             svg.append("text")
-                .attr("x", 240)
-                .attr("y", 60)
+                .attr("x", 80)
+                .attr("y", 100)
                 .attr("text-anchor", "start")
                 .style("font-size", "32px")
                 .style("color", "SteelBlue")
+                .text(locale)
+            
+            svg.append("text")
+                .attr("x", 80)
+                .attr("y", 68)
+                .attr("text-anchor", "start")
+                .style("font-size", "16px")
+                .style("color", "SteelBlue")
                 .text(country.toUpperCase())
-
-
 
             svg.append("g")
                 .attr("class", "l-bar")
@@ -218,7 +235,7 @@
                 .attr("fill", "SteelBlue")
                 .attr("x", d => x0(d.date))
                 .attr("y", d => yl(d.dailyCases))
-                .attr("width", x1.bandwidth())
+                .attr("width", 1.5)
                 .attr("height", d => yl(0) - yl(d.dailyCases))
 
             svg.append("g")
@@ -227,11 +244,11 @@
                 .data(csv, d => d.date)
                 .enter()
                 .append("rect")
-                .attr("transform", d => `translate(4,0)`)
+                .attr("transform", d => `translate(1,0)`)
                 .attr("fill", "FireBrick")
                 .attr("x", d => x0(d.date))
                 .attr("y", d => yr(d.dailyDeaths))
-                .attr("width", x1.bandwidth())
+                .attr("width", 1.5)
                 .attr("height", d => yr(0) - yr(d.dailyDeaths))
 
 

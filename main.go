@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -31,6 +32,8 @@ func main() {
 	sdc := []string{}
 	sd := []string{}
 	sdd := []string{}
+
+	// dict := make(map[string]string)
 
 	exe, err := os.Executable()
 	if err != nil {
@@ -191,7 +194,26 @@ func main() {
 	q.AddURL(tableURL)
 	q.AddURL(worldURL)
 
-	// read config.txt
+	// read country.csv
+	csvReader := csv.NewReader(infile)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, record := range records {
+		url := record[0]
+		// name := record[1]
+		// dict[url] = name
+
+		if url == `country` ||
+			url == `world` {
+			continue
+		}
+
+		q.AddURL(countryURL + url)
+	}
+
 	scanner := bufio.NewScanner(infile)
 	for scanner.Scan() {
 		line := scanner.Text()
