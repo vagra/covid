@@ -34,7 +34,7 @@
         #charts > svg {
             margin: 0 auto;
             padding: 0;
-            display: table-cell;
+            /*display: table-cell;*/
         }
         
         .yl-axis line,
@@ -188,10 +188,9 @@
                 .call(d3.axisLeft(yl))
                 .call(g => g.select(".tick:last-of-type text").clone()
                     .attr("text-anchor", "start")
-                    //.attr("transform", "rotate(90)")
                     .attr("x", 10)
                     .attr("y", 10)
-                    .style("font-size", "12px")
+                    .style("font-size", "20px")
                     .text("每日新增确诊"))
 
             var yrAxis = g => g
@@ -199,10 +198,9 @@
                 .call(d3.axisRight(yr))
                 .call(g => g.select(".tick:last-of-type text").clone()
                     .attr("text-anchor", "end")
-                    //.attr("transform", "rotate(-90)")
                     .attr("x", -10)
                     .attr("y", 10)
-                    .style("font-size", "12px")
+                    .style("font-size", "20px")
                     .text("每日新增死亡"))
 
             svg.append("g")
@@ -238,6 +236,8 @@
                 .style("font-size", "16px")
                 .style("color", "SteelBlue")
                 .text(country.toUpperCase())
+            
+            
 
             svg.append("g")
                 .attr("class", "l-bar")
@@ -250,8 +250,8 @@
                 .attr("x", d => x0(d.date))
                 .attr("y", d => yl(d.dailyCases))
                 .attr("width", x0.bandwidth() * 0.7)
-                .attr("height", d => yl(0) - yl(d.dailyCases))
-
+                .attr("height", d => getheight(yl(0), yl(d.dailyCases)))
+            
             svg.append("g")
                 .attr("class", "r-bar")
                 .selectAll(".r-bar")
@@ -263,9 +263,14 @@
                 .attr("x", d => x0(d.date))
                 .attr("y", d => yr(d.dailyDeaths))
                 .attr("width", x0.bandwidth() * 0.7)
-                .attr("height", d => yr(0) - yr(d.dailyDeaths))
+                .attr("height", d => getheight(yr(0), yr(d.dailyDeaths)))
+        }
 
-
+        function getheight(yzero, ycurr) {
+            curr = ycurr ? ycurr : yzero;
+            hight = yzero - curr;
+            hight = (hight < 0) ? 0 : hight;
+            return hight
         }
     </script>
 </body>
