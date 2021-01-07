@@ -53,6 +53,34 @@ func main() {
 	}
 	defer infile.Close()
 
+	// set trans header file.
+	thfile, err := os.Open(filepath.Join(exePath, "trans_header.csv"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer thfile.Close()
+
+	// set trans country file.
+	tcfile, err := os.Open(filepath.Join(exePath, "trans_country.csv"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tcfile.Close()
+
+	// read trans_header.csv
+	thReader := csv.NewReader(thfile)
+	thList, err := thReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// read trans_country.csv
+	tcReader := csv.NewReader(tcfile)
+	tcList, err := tcReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.UserAgent(agent),
@@ -117,6 +145,21 @@ func main() {
 		new := `<table id="main_table_countries_yesterday" class="table table-bordered table-hover main_table_countries dataTable no-footer" style="width:100%;margin-top: 0px !important;">`
 
 		content = strings.Replace(content, old, new, -1)
+
+		for _, trans := range thList {
+			src := trans[0]
+			dst := trans[1]
+
+			content = strings.Replace(content, src, dst, -1)
+		}
+
+		for _, trans := range tcList {
+			src := trans[0]
+			dst := trans[1]
+
+			content = strings.Replace(content, src, dst, -1)
+		}
+
 		writer.WriteString(content)
 		writer.Flush()
 
