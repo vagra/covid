@@ -17,6 +17,4 @@
 /data/*
 .vscode
 *.sum
-/css/
-/js/
 table.htm
