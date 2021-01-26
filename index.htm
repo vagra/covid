@@ -128,8 +128,8 @@
 
         function chart(csv, country, locale) {
 
-            var parseTime = d3.timeParse("%b %d");
-            var formatTime = d3.timeFormat("%m-%d");
+            var parseTime = d3.timeParse("%b %d, %Y");
+            var formatTime = d3.timeFormat("%y-%m-%d");
 
             var keys = ["Daily Cases", "Daily Deaths"]
 

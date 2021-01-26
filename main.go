@@ -180,9 +180,9 @@ func main() {
 			strings.Contains(content, `Highcharts.chart('graph-cases-daily'`) ||
 			strings.Contains(content, `Highcharts.chart('graph-deaths-daily'`) {
 
-			regx := regexp.MustCompile(`(?s)categories:\s*\[(.*?)\]`)
+			regx := regexp.MustCompile(`(?s)categories:\s*\["(.*?)"\]`)
 			date := regx.FindStringSubmatch(content)[1]
-			sdate = strings.Split(date, ",")
+			sdate = strings.Split(date, "\",\"")
 
 			regy := regexp.MustCompile(`(?s)series:\s*\[\s*\{(.*?)]\s*\}`)
 			series := regy.FindString(content)
@@ -218,7 +218,7 @@ func main() {
 			writer.WriteString("Date,Cases,Daily Cases,Death,Daily Deaths\n")
 
 			for i := 0; i < len(sdate); i++ {
-				writer.WriteString(sdate[i] + "," + sc[i] + "," + sdc[i] + "," + sd[i] + "," + sdd[i] + "\n")
+				writer.WriteString("\"" + sdate[i] + "\"," + sc[i] + "," + sdc[i] + "," + sd[i] + "," + sdd[i] + "\n")
 			}
 
 			writer.Flush()
